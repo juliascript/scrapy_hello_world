@@ -4,7 +4,7 @@ import scrapy
 
 class QuotesSpider(scrapy.Spider):
     name = "quotes"
-    allowed_domains = ["http://quotes.toscrape.com/"]
+    allowed_domains = ["quotes.toscrape.com"]
     start_urls = ['http://quotes.toscrape.com//']
 
     def parse(self, response):
@@ -30,3 +30,10 @@ class QuotesSpider(scrapy.Spider):
         			'tag_links': tag_links
         		}
         	}
+
+        next_pg_url = response.xpath('//*[@class="next"]/a/@href').extract_first()
+        abs_next_pg_url = response.urljoin(next_pg_url)
+        print abs_next_pg_url
+
+        # yield scrapy.http.Request(abs_next_pg_url, callback=self.parse)
+        yield scrapy.http.Request(abs_next_pg_url)
