@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
+from scrapy.loader import ItemLoader
+from quotes_spider.items import QuotesSpiderItem
 
 
 class QuotesSpider(scrapy.Spider):
@@ -11,6 +13,8 @@ class QuotesSpider(scrapy.Spider):
         quotes = response.xpath('//*[@class="quote"]')
 
         for quote in quotes:
+
+        	l = ItemLoader(item=QuotesSpiderItem(), response=response)
         	text = quote.xpath('.//*[@class="text"]/text()').extract_first()
         	# print text
         	author = quote.xpath('.//*[@class="author"]/text()').extract_first()
@@ -22,14 +26,23 @@ class QuotesSpider(scrapy.Spider):
         	# print tag_links
         	# print tags
 
-        	yield {
-        		'text': text,
-        		'author': author,
-        		'tags': {
+        	# yield {
+        	# 	'text': text,
+        	# 	'author': author,
+        	# 	'tags': {
+        	# 		'tag_names': tags,
+        	# 		'tag_links': tag_links
+        	# 	}
+        	# }
+
+        	l.add_value('text', text)
+        	l.add_value('author', author)
+        	l.add_value('tags', {
         			'tag_names': tags,
         			'tag_links': tag_links
-        		}
-        	}
+        		})
+
+        	yield l.load_item()
 
         next_pg_url = response.xpath('//*[@class="next"]/a/@href').extract_first()
         abs_next_pg_url = response.urljoin(next_pg_url)
@@ -37,3 +50,5 @@ class QuotesSpider(scrapy.Spider):
 
         # yield scrapy.http.Request(abs_next_pg_url, callback=self.parse)
         yield scrapy.http.Request(abs_next_pg_url)
+
+
